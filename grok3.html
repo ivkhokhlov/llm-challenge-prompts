@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отчет по Merge Requests</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        canvas {
+            max-width: 600px;
+            margin: 20px 0;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Общий отчет по Merge Requests</h1>
+
+    <!-- Общая информация -->
+    <h2>Общая информация</h2>
+    <ul>
+        <li><strong>Период отчета:</strong> <span id="period">[start_date] - [end_date]</span></li>
+        <li><strong>Количество Merge Requests:</strong> <span id="mr_count">[number_of_mrs]</span></li>
+        <li><strong>Средняя сложность:</strong> <span id="avg_complexity">[metricsSummary.complexity.classification]</span></li>
+    </ul>
+
+    <!-- Сводные метрики -->
+    <h2>Сводные метрики</h2>
+
+    <h3>Code Style</h3>
+    <ul>
+        <li><strong>Средняя оценка:</strong> <span id="code_style_score">[metricsSummary.codeStyle.score]</span></li>
+        <li><strong>Сводное резюме:</strong> <span id="code_style_summary">[metricsSummary.codeStyle.summary]</span></li>
+        <li><strong>Детальный анализ:</strong> <span id="code_style_analysis">[metricsSummary.codeStyle.detailed_analysis]</span></li>
+        <li><strong>Рекомендации:</strong>
+            <ul id="code_style_recommendations">
+                <!-- Динамически заполняется, например: <li>[metricsSummary.codeStyle.recommendations[0]]</li> -->
+            </ul>
+        </li>
+        <li><strong>Уверенность:</strong> <span id="code_style_confidence">[metricsSummary.codeStyle.confidence]</span></li>
+    </ul>
+
+    <h3>Design Patterns</h3>
+    <ul>
+        <li><strong>Средняя оценка:</strong> <span id="design_patterns_score">[metricsSummary.designPatterns.score]</span></li>
+        <li><strong>Сводное резюме:</strong> <span id="design_patterns_summary">[metricsSummary.designPatterns.summary]</span></li>
+        <li><strong>Детальный анализ:</strong> <span id="design_patterns_analysis">[metricsSummary.designPatterns.detailed_analysis]</span></li>
+        <li><strong>Рекомендации:</strong>
+            <ul id="design_patterns_recommendations">
+                <!-- Динамически заполняется -->
+            </ul>
+        </li>
+        <li><strong>Уверенность:</strong> <span id="design_patterns_confidence">[metricsSummary.designPatterns.confidence]</span></li>
+    </ul>
+
+    <h3>Anti-Patterns</h3>
+    <ul>
+        <li><strong>Средняя оценка:</strong> <span id="anti_patterns_score">[metricsSummary.antiPatterns.score]</span></li>
+        <li><strong>Сводное резюме:</strong> <span id="anti_patterns_summary">[metricsSummary.antiPatterns.summary]</span></li>
+        <li><strong>Детальный анализ:</strong> <span id="anti_patterns_analysis">[metricsSummary.antiPatterns.detailed_analysis]</span></li>
+        <li><strong>Рекомендации:</strong>
+            <ul id="anti_patterns_recommendations">
+                <!-- Динамически заполняется -->
+            </ul>
+        </li>
+        <li><strong>Уверенность:</strong> <span id="anti_patterns_confidence">[metricsSummary.antiPatterns.confidence]</span></li>
+    </ul>
+
+    <!-- Детали по Merge Requests -->
+    <h2>Детали по Merge Requests</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID MR</th>
+                <th>Сложность</th>
+                <th>Code Style</th>
+                <th>Design Patterns</th>
+                <th>Anti-Patterns</th>
+                <th>Резюме</th>
+            </tr>
+        </thead>
+        <tbody id="mr_details">
+            <!-- Пример строки: -->
+            <!-- <tr><td>6230</td><td>Low</td><td>8</td><td>10</td><td>10</td><td>Обновление присваивания документов...</td></tr> -->
+        </tbody>
+    </table>
+
+    <!-- Общий итоговый вывод -->
+    <h2>Общий итоговый вывод</h2>
+    <p><strong>Общая оценка:</strong> <span id="total_score">[HAVE_TO_CALCULATE.totalScore]</span></p>
+    <p><strong>Положительные моменты:</strong></p>
+    <ul id="positives">
+        <!-- Динамически заполняется, например: <li>[positives[0]]</li> -->
+    </ul>
+    <p><strong>Области для улучшения:</strong></p>
+    <ul id="areas_for_improvement">
+        <!-- Динамически заполняется -->
+    </ul>
+
+    <!-- Статистика -->
+    <h2>Статистика</h2>
+    <canvas id="metricsChart"></canvas>
+
+    <script>
+        // Пример данных для заполнения (должны быть заменены реальными данными)
+        const exampleData = {
+            period: "2023-01-01 - 2023-01-31",
+            mrCount: 3,
+            avgComplexity: "Low",
+            codeStyle: {
+                score: 8.7,
+                summary: "Код в целом соответствует стандартам стиля...",
+                detailedAnalysis: "Анализ стиля кода в рассмотренных MR показывает высокое качество...",
+                recommendations: ["Удалить закомментированную строку..."],
+                confidence: "High"
+            },
+            designPatterns: {
+                score: 10.0,
+                summary: "Внесенные изменения не содержат анти-паттернов проектирования...",
+                detailedAnalysis: "Анализ изменений с точки зрения проектных шаблонов...",
+                recommendations: ["Удалить закомментированную строку..."],
+                confidence: "High"
+            },
+            antiPatterns: {
+                score: 10.0,
+                summary: "Внесенные изменения не содержат анти-паттернов...",
+                detailedAnalysis: "Общий анализ рассмотренных изменений показывает...",
+                recommendations: [],
+                confidence: "High"
+            },
+            mrs: [
+                { id: 6230, complexity: "Low", codeStyle: 8, designPatterns: 10, antiPatterns: 10, summary: "Обновление присваивания документов..." },
+                { id: 6223, complexity: "Low", codeStyle: 9, designPatterns: 10, antiPatterns: 10, summary: "Тестирование установки uvicorn..." },
+                { id: 6222, complexity: "Low", codeStyle: 9, designPatterns: 10, antiPatterns: 10, summary: "Обновление версии Python в CI/CD..." }
+            ],
+            totalSummary: {
+                totalScore: 9.6,
+                positives: ["Строгое следование лучшим практикам...", "Высокое качество кода..."],
+                areasForImprovement: ["Потенциал для улучшения чистоты кода..."]
+            }
+        };
+
+        // Заполнение общей информации
+        document.getElementById("period").textContent = exampleData.period;
+        document.getElementById("mr_count").textContent = exampleData.mrCount;
+        document.getElementById("avg_complexity").textContent = exampleData.avgComplexity;
+
+        // Заполнение сводных метрик
+        document.getElementById("code_style_score").textContent = exampleData.codeStyle.score;
+        document.getElementById("code_style_summary").textContent = exampleData.codeStyle.summary;
+        document.getElementById("code_style_analysis").textContent = exampleData.codeStyle.detailedAnalysis;
+        document.getElementById("code_style_confidence").textContent = exampleData.codeStyle.confidence;
+        const codeStyleRecs = document.getElementById("code_style_recommendations");
+        exampleData.codeStyle.recommendations.forEach(rec => {
+            const li = document.createElement("li");
+            li.textContent = rec;
+            codeStyleRecs.appendChild(li);
+        });
+
+        document.getElementById("design_patterns_score").textContent = exampleData.designPatterns.score;
+        document.getElementById("design_patterns_summary").textContent = exampleData.designPatterns.summary;
+        document.getElementById("design_patterns_analysis").textContent = exampleData.designPatterns.detailedAnalysis;
+        document.getElementById("design_patterns_confidence").textContent = exampleData.designPatterns.confidence;
+        const designPatternsRecs = document.getElementById("design_patterns_recommendations");
+        exampleData.designPatterns.recommendations.forEach(rec => {
+            const li = document.createElement("li");
+            li.textContent = rec;
+            designPatternsRecs.appendChild(li);
+        });
+
+        document.getElementById("anti_patterns_score").textContent = exampleData.antiPatterns.score;
+        document.getElementById("anti_patterns_summary").textContent = exampleData.antiPatterns.summary;
+        document.getElementById("anti_patterns_analysis").textContent = exampleData.antiPatterns.detailedAnalysis;
+        document.getElementById("anti_patterns_confidence").textContent = exampleData.antiPatterns.confidence;
+        const antiPatternsRecs = document.getElementById("anti_patterns_recommendations");
+        exampleData.antiPatterns.recommendations.forEach(rec => {
+            const li = document.createElement("li");
+            li.textContent = rec;
+            antiPatternsRecs.appendChild(li);
+        });
+
+        // Заполнение таблицы MR
+        const mrTableBody = document.getElementById("mr_details");
+        exampleData.mrs.forEach(mr => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${mr.id}</td>
+                <td>${mr.complexity}</td>
+                <td>${mr.codeStyle}</td>
+                <td>${mr.designPatterns}</td>
+                <td>${mr.antiPatterns}</td>
+                <td>${mr.summary}</td>
+            `;
+            mrTableBody.appendChild(row);
+        });
+
+        // Заполнение итогового вывода
+        document.getElementById("total_score").textContent = exampleData.totalSummary.totalScore;
+        const positivesList = document.getElementById("positives");
+        exampleData.totalSummary.positives.forEach(pos => {
+            const li = document.createElement("li");
+            li.textContent = pos;
+            positivesList.appendChild(li);
+        });
+        const areasList = document.getElementById("areas_for_improvement");
+        exampleData.totalSummary.areasForImprovement.forEach(area => {
+            const li = document.createElement("li");
+            li.textContent = area;
+            areasList.appendChild(li);
+        });
+
+        // График статистики
+        const ctx = document.getElementById("metricsChart").getContext("2d");
+        new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: ["Code Style", "Design Patterns", "Anti-Patterns"],
+                datasets: [{
+                    label: "Средняя оценка",
+                    data: [exampleData.codeStyle.score, exampleData.designPatterns.score, exampleData.antiPatterns.score],
+                    backgroundColor: ["rgba(75, 192, 192, 0.2)", "rgba(153, 102, 255, 0.2)", "rgba(255, 159, 64, 0.2)"],
+                    borderColor: ["rgba(75, 192, 192, 1)", "rgba(153, 102, 255, 1)", "rgba(255, 159, 64, 1)"],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 10
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

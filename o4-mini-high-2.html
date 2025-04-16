@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Отчет по Merge Requests</title>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+    header { text-align: center; margin-bottom: 40px; }
+    header h1 { margin: 0; font-size: 2rem; }
+    section { margin-bottom: 40px; }
+    .summary, .metrics-summary { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
+    th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+    th { background: #f0f0f0; }
+    .chart-container { width: 100%; max-width: 800px; margin: 0 auto; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Статический отчет по Merge Requests</h1>
+    <p>Период отчета: <strong>2025-04-01 – 2025-04-17</strong></p>
+  </header>
+
+  <section class="summary">
+    <h2>Краткая сводка</h2>
+    <p>За период выполнено 3 Merge Request, все изменения имеют низкую сложность и высокие оценки по качеству кода, отсутствуют анти-паттерны. Средние оценки: Code Style — 8.7, Anti-Patterns — 10.0, Design Patterns — 10.0.</p>
+  </section>
+
+  <section class="metrics-summary">
+    <h2>Средние метрики</h2>
+    <ul>
+      <li><strong>Сложность:</strong> Low</li>
+      <li><strong>Code Style:</strong> 8.7</li>
+      <li><strong>Anti-Patterns:</strong> 10.0</li>
+      <li><strong>Design Patterns:</strong> 10.0</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Сводная таблица MR</h2>
+    <table id="mr-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Название</th>
+          <th>Сложность</th>
+          <th>Code Style</th>
+          <th>Anti-Patterns</th>
+          <th>Design Patterns</th>
+          <th>Краткое описание</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Графики и статистика</h2>
+    <div class="chart-container">
+      <canvas id="per-mr-chart"></canvas>
+    </div>
+    <div class="chart-container">
+      <canvas id="avg-chart"></canvas>
+    </div>
+  </section>
+
+  <section>
+    <h2>Детальный отчет по каждому MR</h2>
+    <div id="details"></div>
+  </section>
+
+  <footer style="text-align:center; margin-top:60px; font-size:0.9rem; color:#666;">
+    <p>Сгенерировано автоматически</p>
+  </footer>
+
+  <script>
+    // Данные из pull_reviews.json
+    const pullReviews = [
+      { id: 6230, title: 'fix: direct docs usage in client', complexity: 'Low', codeStyle: 8, antiPatterns: 10, designPatterns: 10, summary: 'Заменено req.data.docs на req.direct_docs.', recommendations: ['Удалить закомментированную строку #req.data.docs = da.'] },
+      { id: 6223, title: 'ci: test uvicorn non standard install', complexity: 'Low', codeStyle: 9, antiPatterns: 10, designPatterns: 10, summary: 'Удалён [standard] из зависимости uvicorn.', recommendations: [] },
+      { id: 6222, title: 'ci: pdate force-release.yml', complexity: 'Low', codeStyle: 9, antiPatterns: 10, designPatterns: 10, summary: 'Обновлён python-version до "3.10" в CI workflow.', recommendations: [] }
+    ];
+
+    // Заполнение таблицы
+    const tbody = document.querySelector('#mr-table tbody');
+    pullReviews.forEach(pr => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${pr.id}</td>
+        <td>${pr.title}</td>
+        <td>${pr.complexity}</td>
+        <td>${pr.codeStyle}</td>
+        <td>${pr.antiPatterns}</td>
+        <td>${pr.designPatterns}</td>
+        <td>${pr.summary}</td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    // Данные для графика по MR
+    const labels = pullReviews.map(pr => pr.id);
+    const codeStyle = pullReviews.map(pr => pr.codeStyle);
+    const anti = pullReviews.map(pr => pr.antiPatterns);
+    const design = pullReviews.map(pr => pr.designPatterns);
+
+    new Chart(document.getElementById('per-mr-chart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Code Style', data: codeStyle },
+          { label: 'Anti-Patterns', data: anti },
+          { label: 'Design Patterns', data: design }
+        ]
+      },
+      options: { scales: { y: { beginAtZero: true, max: 10 } } }
+    });
+
+    // График средних значений
+    const avgValues = [8.7, 10.0, 10.0];
+    new Chart(document.getElementById('avg-chart'), {
+      type: 'radar',
+      data: {
+        labels: ['Code Style', 'Anti-Patterns', 'Design Patterns'],
+        datasets: [{ label: 'Средние оценки', data: avgValues, fill: true }]
+      },
+      options: { scales: { r: { beginAtZero: true, max: 10 } } }
+    });
+
+    // Детали MR
+    const detailsDiv = document.getElementById('details');
+    pullReviews.forEach(pr => {
+      const article = document.createElement('article');
+      article.innerHTML = `
+        <h3>MR #${pr.id}: ${pr.title}</h3>
+        <p><strong>Краткое описание:</strong> ${pr.summary}</p>
+        <p><strong>Рекомендации:</strong></p>
+        <ul>${pr.recommendations.map(rec => `<li>${rec}</li>`).join('')}</ul>
+      `;
+      detailsDiv.appendChild(article);
+    });
+  </script>
+</body>
+</html>

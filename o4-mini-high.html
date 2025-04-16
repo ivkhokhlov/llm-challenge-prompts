@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Отчет по Merge Requests</title>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+    header { text-align: center; margin-bottom: 40px; }
+    header h1 { margin: 0; font-size: 2rem; }
+    section { margin-bottom: 40px; }
+    .summary { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
+    th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+    th { background: #f0f0f0; }
+    .chart-container { width: 100%; max-width: 800px; margin: 0 auto; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Статический отчет по Merge Requests</h1>
+    <p>Период отчета: <strong><!-- {{period_start}} – {{period_end}} --></strong></p>
+  </header>
+
+  <!-- Краткая сводка -->
+  <section class="summary">
+    <h2>Краткая сводка</h2>
+    <p><!-- {{summary_text}} --></p>
+  </section>
+
+  <!-- Таблица по Merge Requests -->
+  <section>
+    <h2>Сводная таблица MR</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Название</th>
+          <th>Сложность</th>
+          <th>Code Style</th>
+          <th>Anti-Patterns</th>
+          <th>Design Patterns</th>
+          <th>Краткое описание</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Пример строки:
+        <tr>
+          <td>6230</td>
+          <td>fix: direct docs usage</td>
+          <td>Low</td>
+          <td>8</td>
+          <td>10</td>
+          <td>10</td>
+          <td>Заменено req.data.docs на req.direct_docs</td>
+        </tr>
+        -->
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Графики и статистика -->
+  <section>
+    <h2>Графики и статистика</h2>
+    <div class="chart-container">
+      <canvas id="scoreChart"></canvas>
+    </div>
+    <script>
+      // Данные для графика (placeholder)
+      const mrLabels = [/* '6230', '6223', ... */];
+      const codeStyleScores = [/* 8, 9, ... */];
+      const antiPatternScores = [/* 10, 10, ... */];
+      const designPatternScores = [/* 10, 10, ... */];
+
+      const ctx = document.getElementById('scoreChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: mrLabels,
+          datasets: [
+            {
+              label: 'Code Style',
+              data: codeStyleScores,
+              backgroundColor: 'rgba(54, 162, 235, 0.6)'/* автоцвета можно заменить */
+            },
+            {
+              label: 'Anti-Patterns',
+              data: antiPatternScores,
+              backgroundColor: 'rgba(255, 99, 132, 0.6)'
+            },
+            {
+              label: 'Design Patterns',
+              data: designPatternScores,
+              backgroundColor: 'rgba(75, 192, 192, 0.6)'
+            }
+          ]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true, max: 10 }
+          }
+        }
+      });
+    </script>
+  </section>
+
+  <!-- Детальные отчеты по каждому MR -->
+  <section>
+    <h2>Детальный отчет по MR</h2>
+    <!-- Пример: -->
+    <!--
+    <article>
+      <h3>MR #6230: fix direct docs usage</h3>
+      <h4>Сложность: Low</h4>
+      <h4>Code Style: 8</h4>
+      <h4>Anti-Patterns: 10</h4>
+      <h4>Design Patterns: 10</h4>
+      <h4>Summary:</h4>
+      <p>Заменено поле req.data.docs на req.direct_docs, небольшое улучшение API.</p>
+      <h4>Detailed Analysis & Recommendations:</h4>
+      <ul>
+        <li>Удалить закомментированную строку <code>#req.data.docs = da</code>.</li>
+      </ul>
+    </article>
+    -->
+  </section>
+
+  <footer style="text-align:center; margin-top:60px; font-size:0.9rem; color:#666;">
+    <p>Сгенерировано автоматически</p>
+  </footer>
+</body>
+</html>
+

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Отчет по Merge Requests</title>
+  <!-- Tailwind CDN (можно заменить локальной сборкой) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js для визуализации статистики -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Дополнительные стили, если Tailwind недостаточно */
+    .card { @apply bg-white shadow-lg rounded-2xl p-6 my-4; }
+    .table-header { @apply bg-gray-100 font-semibold; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <!-- ================= Заголовок отчета ================ -->
+  <header class="container mx-auto py-8 text-center">
+    <h1 class="text-4xl font-bold mb-2">Статический отчет по Merge Requests</h1>
+    <p class="text-lg text-gray-600">Период: <span id="report-period">{{REPORT_PERIOD}}</span></p>
+  </header>
+
+  <main class="container mx-auto px-4">
+    <!-- ============ Краткая сводка ============ -->
+    <section id="summary" class="card">
+      <h2 class="text-2xl font-semibold mb-4">Краткая сводка</h2>
+      <ul class="list-disc list-inside space-y-1">
+        <li>Количество Merge Requests: <strong>{{TOTAL_MR}}</strong></li>
+        <li>Средняя сложность: <strong>{{AVG_COMPLEXITY}}</strong></li>
+        <li>Средний Code Style Score: <strong>{{AVG_CODE_STYLE}}</strong></li>
+        <li>Средний Design Patterns Score: <strong>{{AVG_DESIGN_PATTERNS}}</strong></li>
+        <li>Средний Anti‑Patterns Score: <strong>{{AVG_ANTI_PATTERNS}}</strong></li>
+      </ul>
+    </section>
+
+    <!-- ============ Графики / статистика ============ -->
+    <section id="charts" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- График агрегированных оценок -->
+      <div class="card">
+        <h3 class="text-xl font-semibold mb-2">Сводные оценки по метрикам</h3>
+        <canvas id="metricBarChart" height="200"></canvas>
+      </div>
+
+      <!-- График распределения сложности MR -->
+      <div class="card">
+        <h3 class="text-xl font-semibold mb-2">Распределение сложности MR</h3>
+        <canvas id="complexityPieChart" height="200"></canvas>
+      </div>
+    </section>
+
+    <!-- ============ Таблица по каждому MR ============ -->
+    <section id="mr-details" class="card overflow-x-auto">
+      <h2 class="text-2xl font-semibold mb-4">Детали Merge Requests</h2>
+      <!--
+        Таблица заполняется динамически. Шаблон строки ниже показывает требуемую структуру.
+        Замените {{PLACEHOLDER}} значениями из ваших данных (например, JSON pull_reviews).
+      -->
+      <table class="min-w-full border-collapse">
+        <thead>
+          <tr class="table-header text-left">
+            <th class="p-2">MR ID</th>
+            <th class="p-2">Заголовок</th>
+            <th class="p-2">Сложность</th>
+            <th class="p-2">Code Style</th>
+            <th class="p-2">Design Patterns</th>
+            <th class="p-2">Anti‑Patterns</th>
+            <th class="p-2">Краткая сводка</th>
+          </tr>
+        </thead>
+        <tbody id="mr-table-body">
+          <!-- Пример строки -->
+          <tr class="border-b last:border-0">
+            <td class="p-2">{{MR_ID}}</td>
+            <td class="p-2 truncate max-w-xs">{{MR_TITLE}}</td>
+            <td class="p-2">{{MR_COMPLEXITY}}</td>
+            <td class="p-2">{{MR_CODE_STYLE_SCORE}}</td>
+            <td class="p-2">{{MR_DESIGN_PATTERNS_SCORE}}</td>
+            <td class="p-2">{{MR_ANTI_PATTERNS_SCORE}}</td>
+            <td class="p-2 text-sm">{{MR_SUMMARY}}</td>
+          </tr>
+          <!-- Добавьте дополнительные <tr> для каждого MR -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- ============ Скрипты визуализации (пример с мок‑данными) ============ -->
+  <script>
+    // ===== Пример данных (замените на фактический JSON) =====
+    const summary = {
+      period: '01.04.2025 – 17.04.2025',
+      totalMR: 3,
+      avgComplexity: 'Low',
+      avgCodeStyle: 8.67,
+      avgDesignPatterns: 10,
+      avgAntiPatterns: 10
+    };
+
+    const metricsAverage = {
+      labels: ['Code Style', 'Design Patterns', 'Anti‑Patterns'],
+      scores: [8.67, 10, 10]
+    };
+
+    const complexityDistribution = {
+      labels: ['Low', 'Medium', 'High'],
+      counts: [3, 0, 0]
+    };
+
+    // ===== Заполняем сводку =====
+    document.getElementById('report-period').textContent = summary.period;
+    document.querySelector('#summary strong:nth-of-type(1)').textContent = summary.totalMR;
+    document.querySelector('#summary strong:nth-of-type(2)').textContent = summary.avgComplexity;
+    document.querySelector('#summary strong:nth-of-type(3)').textContent = summary.avgCodeStyle;
+    document.querySelector('#summary strong:nth-of-type(4)').textContent = summary.avgDesignPatterns;
+    document.querySelector('#summary strong:nth-of-type(5)').textContent = summary.avgAntiPatterns;
+
+    // ===== Бар‑чарт средних оценок =====
+    new Chart(document.getElementById('metricBarChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: metricsAverage.labels,
+        datasets: [{
+          label: 'Средний балл',
+          data: metricsAverage.scores,
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 10
+          }
+        }
+      }
+    });
+
+    // ===== Pie‑чарт распределения сложности =====
+    new Chart(document.getElementById('complexityPieChart').getContext('2d'), {
+      type: 'pie',
+      data: {
+        labels: complexityDistribution.labels,
+        datasets: [{
+          data: complexityDistribution.counts,
+          borderWidth: 1
+        }]
+      }
+    });
+
+    // ===== Заполнение таблицы MR (пример для одного MR) =====
+    const mrData = [
+      {
+        id: 6230,
+        title: 'fix: direct docs usage in client',
+        complexity: 'Low',
+        codeStyle: 8,
+        designPatterns: 10,
+        antiPatterns: 10,
+        summary: 'Обновляет способ присваивания документов объекту запроса.'
+      },
+      // Добавьте другие MR здесь
+    ];
+
+    const tbody = document.getElementById('mr-table-body');
+    tbody.innerHTML = mrData.map(mr => `
+      <tr class="border-b last:border-0">
+        <td class="p-2">${mr.id}</td>
+        <td class="p-2 truncate max-w-xs" title="${mr.title}">${mr.title}</td>
+        <td class="p-2">${mr.complexity}</td>
+        <td class="p-2">${mr.codeStyle}</td>
+        <td class="p-2">${mr.designPatterns}</td>
+        <td class="p-2">${mr.antiPatterns}</td>
+        <td class="p-2 text-sm">${mr.summary}</td>
+      </tr>`).join('');
+  </script>
+</body>
+</html>
+
